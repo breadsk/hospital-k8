@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Servicio de base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_hospital
+    environment:
+      MYSQL_ROOT_PASSWORD: ""          # Deja la contraseña vacía como en tu properties
+      MYSQL_DATABASE: db_hospital_vm   # Nombre de la BD que espera tu app
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes  # Permite contraseña vacía (no recomendado en producción)
+    ports:
+      - "3306:3306"                    # Expone MySQL en el puerto 3306 de tu host (opcional)
+    volumes:
+      - mysql_data:/var/lib/mysql      # Persistencia de datos
+    networks:
+      - hospital_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Servicio de tu aplicación Spring Boot
+  app:
+    build: .                           # Construye la imagen desde el Dockerfile actual
+    container_name: hospital_app
+    depends_on:
+      mysql:
+        condition: service_healthy     # Espera a que MySQL esté listo
+    environment:
+      # Sobrescribe las propiedades de application.properties
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_hospital_vm?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+      # Opcional: puedes desactivar la consola de Hibernate si quieres
+      # SPRING_JPA_SHOW_SQL: "true"
+    ports:
+      - "8080:8080"
+    networks:
+      - hospital_network
+
+# Definir volúmenes y redes
+volumes:
+  mysql_data:
+
+networks:
+  hospital_network:
