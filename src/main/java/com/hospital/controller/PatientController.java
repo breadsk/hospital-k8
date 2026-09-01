@@ -18,6 +18,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
 @RequestMapping("/api/v1/patients")
+@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+})
 @Tag(name = "Patients", description = "Operaciones relacionadas con los pacientes")
 public class PatientController {
 
